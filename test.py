@@ -36,7 +36,7 @@ class TestWebsite:
 
         locator = self.browser.find_element(By.XPATH,
                                             "//tr/td[3][contains(text(), '" + name + "')]"
-                                            "/following-sibling::td[1][contains(text(),'" + address + "')]")
+                                                                                     "/following-sibling::td[1][contains(text(),'" + address + "')]")
         # td[3] needed to ensure we are at the ContactName column, td[1] to ensure it's an address column
         assert locator is not None
 
@@ -70,7 +70,8 @@ class TestWebsite:
             assert main_page.resultsql_text_div() == "You have made changes to the database"
         # insert
         script = "window.editor.setValue(\"INSERT INTO Customers (CustomerName, ContactName, Address, City, PostalCode, Country) " \
-                 "VALUES ('Xnbonaaal', 'Call Denny', 'Raavercrow 21', 'Dandy', '"+str(postal_code)+"', 'Serbia');\");"
+                 "VALUES ('Xnbonaaal', 'Call Denny', 'Raavercrow 21', 'Dandy', '" + str(
+            postal_code) + "', 'Serbia');\");"
         self.browser.execute_script(script)
         main_page.run_sql_button().click()
         assert main_page.resultsql_text_div() == "You have made changes to the database. Rows affected: 1"
@@ -80,8 +81,8 @@ class TestWebsite:
                  "ContactName = 'Call Denny' and " \
                  "Address = 'Raavercrow 21' and " \
                  "City = 'Dandy' and " \
-                 "PostalCode = '"+str(postal_code)+"' and " \
-                 "Country = 'Serbia';\");"
+                 "PostalCode = '" + str(postal_code) + "' and " \
+                                                       "Country = 'Serbia';\");"
         self.browser.execute_script(script)
         main_page.run_sql_button().click()
         assert main_page.number_of_records() == '1'
@@ -92,12 +93,13 @@ class TestWebsite:
         main_page.assert_table_cell(str(postal_code))
         main_page.assert_table_cell("Serbia")
         # delete inserted row
-        script = "window.editor.setValue(\"DELETE FROM Customers WHERE CustomerName='Xnbonaaal' and PostalCode=" + str(postal_code) + ";\");"
+        script = "window.editor.setValue(\"DELETE FROM Customers WHERE CustomerName='Xnbonaaal' and PostalCode=" + str(
+            postal_code) + ";\");"
         self.browser.execute_script(script)
         main_page.run_sql_button().click()
         assert main_page.resultsql_text_div() == "You have made changes to the database. Rows affected: 1"
 
-    def test_record_update(self):
+    def test_update_record(self):
         # insert
         main_page = page.MainPage(self.browser)
         script = "window.editor.setValue(\"INSERT INTO Customers (CustomerName, ContactName, Address, City, PostalCode, Country) " \
@@ -142,36 +144,22 @@ class TestWebsite:
         main_page.run_sql_button().click()
         assert main_page.resultsql_text_div() == "You have made changes to the database. Rows affected: 1"
 
-    def test_tools_menu(self):
-        """this test checks presence of Tools menu item"""
-        tools_menu = self.browser.find_element(By.XPATH,
-                                               "//div[contains(@class, 'menu-main__item') and text() = 'Tools']")
-        actions = webdriver.ActionChains(self.browser)
-        actions.move_to_element(tools_menu)
-        actions.perform()
+    def test_delete_record(self):
+        # insert
+        main_page = page.MainPage(self.browser)
+        script = "window.editor.setValue(\"INSERT INTO Customers (CustomerName) VALUES ('Delete');\");"
+        self.browser.execute_script(script)
+        main_page.run_sql_button().click()
+        # time.sleep(2) TODO: investigate lags handle
+        # delete
+        script = "window.editor.setValue(\"DELETE FROM Customers WHERE CustomerName='Delete';\");"
+        self.browser.execute_script(script)
+        main_page.run_sql_button().click()
+        assert main_page.resultsql_text_div() == "You have made changes to the database. Rows affected: 1"
 
-        menu_popup = self.browser.find_element_by_class_name("menu-main__popup-wrapper")
-        assert menu_popup is not None
-
-    def test_navigation_to_all_tools(self):
-        """this test checks navigation by See All Tools button"""
-        see_all_tools_button = self.browser.find_element_by_css_selector("a.wt-button_mode_primary")
-        see_all_tools_button.click()
-
-        products_list = self.browser.find_element_by_class_name("products-list")
-        assert products_list is not None
-        assert self.browser.title == "All Developer Tools and Products by JetBrains"
-
-    def test_search(self):
-        """this test checks search from the main menu"""
-        search_button = self.browser.find_element_by_css_selector("[data-test=menu-main-icon-search]")
-        search_button.click()
-
-        search_field = self.browser.find_element_by_id("header-search")
-        search_field.send_keys("Selenium")
-
-        submit_button = self.browser.find_element_by_xpath("//button[@type='submit' and text()='Search']")
-        submit_button.click()
-
-        search_page_field = self.browser.find_element_by_class_name("js-search-input")
-        assert search_page_field.get_property("value") == "Selenium"
+        # TODO: refactor insert/delete/select DB record method
+        # TODO: investigate lags and handle waiters
+        # TODO: better setup teardown
+        # TODO: tags
+        # TODO: fully implement Page object pattern, store all actions and data in pages, create test runs
+        # TODO: implement settins to store parameters (base url, data sets etc.)
