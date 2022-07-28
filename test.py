@@ -8,9 +8,6 @@ from page import page
 
 
 class TestWebsite:
-    # 1. Check address by name
-    # 2. Run 'Selenium Tests' configuration
-    # 3. Test report will be created in reports/ directory
 
     @pytest.fixture(autouse=True)
     def browser_setup_and_teardown(self):
@@ -68,8 +65,7 @@ class TestWebsite:
             assert main_page.resultsql_text_div() == "You have made changes to the database"
         # insert
         script = "window.editor.setValue(\"INSERT INTO Customers (CustomerName, ContactName, Address, City, PostalCode, Country) " \
-                 "VALUES ('Xnbonaaal', 'Call Denny', 'Raavercrow 21', 'Dandy', '" + str(
-            postal_code) + "', 'Serbia');\");"
+                 "VALUES ('Xnbonaaal', 'Call Denny', 'Raavercrow 21', 'Dandy', '" + str(postal_code) + "', 'Serbia');\");"
         self.browser.execute_script(script)
         main_page.run_sql_button().click()
         assert main_page.resultsql_text_div() == "You have made changes to the database. Rows affected: 1"
@@ -160,4 +156,4 @@ class TestWebsite:
         # TODO: better setup teardown
         # TODO: tags
         # TODO: fully implement Page object pattern, store all actions and data in pages, create test runs
-        # TODO: implement settins to store parameters (base url, data sets etc.)
+        # TODO: implement settings to store parameters (base url, data sets etc.)
